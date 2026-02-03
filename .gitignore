@@ -71,3 +71,7 @@ coverage.xml
 
 # Bauplan
 .bauplan/
+
+# Testing stuff
+prova.py
+prova.ipynb
