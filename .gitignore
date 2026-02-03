@@ -42,9 +42,7 @@ coverage.xml
 .pytest_cache/
 
 # Type checking
-.mypy_cache/
-.dmypy.json
-dmypy.json
+.ty_cache/
 
 # Ruff
 .ruff_cache/
