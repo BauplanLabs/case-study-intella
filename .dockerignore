@@ -44,8 +44,9 @@ Dockerfile
 .env
 .env.local
 
-# Documentation
+# Documentation (except README.md needed for build)
 *.md
+!README.md
 docs
 
 # Misc

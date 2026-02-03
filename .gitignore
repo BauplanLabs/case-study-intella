@@ -48,7 +48,7 @@ coverage.xml
 .ruff_cache/
 
 # IDEs
-.vscode/
+# .vscode/
 .idea/
 *.swp
 *.swo

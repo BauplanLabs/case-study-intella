@@ -1,19 +1,31 @@
 FROM prefecthq/prefect:3-python3.12
 
+# Install curl for healthchecks
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
-# Install uv for faster dependency installation
-RUN pip install uv
+# Install dependencies first (for better caching)
+# Using cache mount for faster rebuilds
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --locked --no-install-project --no-dev
 
-# Copy dependency files first for better caching
-COPY pyproject.toml ./
-COPY case_study_telemetry/__init__.py ./case_study_telemetry/
+# Copy the full application
+COPY . /app
 
-# Install dependencies using uv
-RUN uv pip install --system -e .
+# Install the project itself
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --no-dev
 
-# Copy the rest of the application
-COPY . .
+# Expose healthcheck port
+EXPOSE 8080
+
+# Healthcheck using the worker's health endpoint
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
 
 # Default command - can be overridden in docker-compose
-CMD ["prefect", "worker", "start", "--pool", "process-pool", "--type", "process"]
+CMD ["prefect", "worker", "start", "--pool", "process-pool", "--type", "process", "--with-healthcheck"]

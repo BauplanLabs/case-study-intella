@@ -63,11 +63,8 @@ build:
 
 # Start all services (PostgreSQL, Prefect Server, Prefect Worker)
 launch:
-    docker compose up -d
-
-# Start services and rebuild if needed
-launch-build:
     docker compose up -d --build
+
 
 # Stop all services
 stop:
