@@ -6,43 +6,10 @@ import bauplan
 from prefect import task
 from prefect.logging import get_run_logger
 
-
-@task(name="ensure-table-exists", retries=2, retry_delay_seconds=5)
-def ensure_table_exists(
-    namespace: str,
-    table_name: str,
-    branch: str = "main",
-) -> bool:
-    """Ensure the target table exists in the specified namespace.
-
-    This simulates a production environment where the table schema is predefined.
-    In a real scenario, this would be handled by infrastructure-as-code.
-
-    Args:
-        namespace: The Bauplan namespace.
-        table_name: The table name.
-        branch: The branch to check on.
-
-    Returns:
-        True if the table exists or was created successfully.
-    """
-    logger = get_run_logger()
-    full_table_name = f"{namespace}.{table_name}"
-    logger.info(f"Checking if table exists: {full_table_name} on branch {branch}")
-
-    client = bauplan.Client()
-
-    # Check if table exists
-    try:
-        client.get_table(table=full_table_name, ref=branch)
-        logger.info(f"Table {full_table_name} already exists")
-        return True
-    except Exception:
-        logger.info(f"Table {full_table_name} does not exist, will be created during ingestion")
-        return True
+from case_study_telemetry.config import get_config
 
 
-@task(name="ingest-from-s3", retries=2, retry_delay_seconds=30)
+@task(name="ingest-from-s3", retries=0, retry_delay_seconds=30)
 def ingest_from_s3(
     s3_uri: str,
     namespace: str,
@@ -51,6 +18,9 @@ def ingest_from_s3(
     file_pattern: str = "*.parquet",
 ) -> dict[str, Any]:
     """Ingest data from S3 into a Bauplan table on the staging branch.
+
+    Creates the table if it doesn't exist, or replaces it if it does.
+    The table schema is inferred from the parquet files.
 
     Args:
         s3_uri: The S3 URI to ingest from (e.g., s3://bucket/path/).
@@ -63,25 +33,28 @@ def ingest_from_s3(
         Dictionary with ingestion statistics.
     """
     logger = get_run_logger()
+    config = get_config()
     full_table_name = f"{namespace}.{table_name}"
     source_path = f"{s3_uri.rstrip('/')}/{file_pattern}"
 
     logger.info(f"Ingesting from {source_path} into {full_table_name} on branch {branch}")
 
-    client = bauplan.Client()
+    client = bauplan.Client(api_key=config.bauplan_api_key)
 
-    # Import data from S3 to the staging branch
-    result = client.import_data(
+    # Create table from S3 (this both creates the table and imports the data)
+    # Using replace=True to handle the case where the table already exists
+    table = client.create_table(
         table=full_table_name,
         search_uri=source_path,
         branch=branch,
+        replace=True,
     )
 
     stats: dict[str, Any] = {
         "table": full_table_name,
         "branch": branch,
         "source": source_path,
-        "rows_ingested": getattr(result, "rows_ingested", 0),
+        "table_created": table.name if table else full_table_name,
     }
 
     logger.info(f"Ingestion complete: {stats}")

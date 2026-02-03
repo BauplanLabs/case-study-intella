@@ -9,7 +9,7 @@ from prefect.logging import get_run_logger
 from case_study_telemetry.models import BronzeClientTelemetry, SilverClientTelemetry
 
 
-@task(name="run-transformations", retries=1, retry_delay_seconds=30)
+@task(name="run-transformations", retries=0, retry_delay_seconds=30)
 def run_transformations(
     namespace: str,
     source_table: str,

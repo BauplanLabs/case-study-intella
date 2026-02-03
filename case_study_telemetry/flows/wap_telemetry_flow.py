@@ -3,6 +3,7 @@
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
+from dotenv import load_dotenv
 from prefect import flow
 from prefect.logging import get_run_logger
 
@@ -17,7 +18,7 @@ from case_study_telemetry.tasks.audit_tasks import (
     check_row_count,
 )
 from case_study_telemetry.tasks.branch_tasks import create_staging_branch, delete_branch
-from case_study_telemetry.tasks.ingestion_tasks import ensure_table_exists, ingest_from_s3
+from case_study_telemetry.tasks.ingestion_tasks import ingest_from_s3
 from case_study_telemetry.tasks.publish_tasks import diff_branch, merge_to_main
 from case_study_telemetry.tasks.transformation_tasks import run_transformations
 
@@ -99,15 +100,13 @@ def wap_telemetry_pipeline(
         logger.info("PHASE 1: WRITE")
         logger.info("-" * 40)
 
-        # Step 1.1: Create staging branch
-        branch = create_staging_branch(prefix="wap-telemetry")
+        # Step 1.1: Create staging branch (username.wap-staging)
+        branch = create_staging_branch()
         result.branch = branch
         logger.info(f"Created staging branch: {branch}")
 
-        # Step 1.2: Ensure source table exists on main
-        ensure_table_exists(namespace=ns, table_name=bronze_table, branch="main")
-
-        # Step 1.3: Ingest raw data from S3 (Bronze schema)
+        # Step 1.2: Ingest raw data from S3 (Bronze schema)
+        # create_table handles both table creation and data import
         ingestion_stats = ingest_from_s3(
             s3_uri=s3_uri,
             namespace=ns,
@@ -237,5 +236,6 @@ def wap_telemetry_pipeline(
 
 if __name__ == "__main__":
     # Allow running directly for testing
+    load_dotenv()
     result = wap_telemetry_pipeline()
     print(f"Pipeline result: {result}")

@@ -8,7 +8,7 @@ from prefect import task
 from prefect.logging import get_run_logger
 
 
-@task(name="diff-branch", retries=1)
+@task(name="diff-branch", retries=0)
 def diff_branch(branch: str) -> dict[str, Any]:
     """Show the differences between the staging branch and main.
 
@@ -52,7 +52,7 @@ def diff_branch(branch: str) -> dict[str, Any]:
     return diff_info
 
 
-@task(name="merge-to-main", retries=2, retry_delay_seconds=10)
+@task(name="merge-to-main", retries=0, retry_delay_seconds=10)
 def merge_to_main(branch: str) -> dict[str, Any]:
     """Merge the staging branch into main (publish).
 

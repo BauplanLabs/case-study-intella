@@ -37,7 +37,7 @@ def _get_scalar_from_table(table: pa.Table, column: str, default: int = 0) -> in
     return int(table.column(column)[0].as_py())
 
 
-@task(name="check-no-null-time", retries=1)
+@task(name="check-no-null-time", retries=0)
 def check_no_null_time(
     namespace: str,
     table_name: str,
@@ -88,7 +88,7 @@ def check_no_null_time(
     return audit_result
 
 
-@task(name="check-no-null-value", retries=1)
+@task(name="check-no-null-value", retries=0)
 def check_no_null_value(
     namespace: str,
     table_name: str,
@@ -139,7 +139,7 @@ def check_no_null_value(
     return audit_result
 
 
-@task(name="check-no-null-signal", retries=1)
+@task(name="check-no-null-signal", retries=0)
 def check_no_null_signal(
     namespace: str,
     table_name: str,
@@ -190,7 +190,7 @@ def check_no_null_signal(
     return audit_result
 
 
-@task(name="check-no-duplicates", retries=1)
+@task(name="check-no-duplicates", retries=0)
 def check_no_duplicates(
     namespace: str,
     table_name: str,
@@ -246,7 +246,7 @@ def check_no_duplicates(
     return audit_result
 
 
-@task(name="check-row-count", retries=1)
+@task(name="check-row-count", retries=0)
 def check_row_count(
     namespace: str,
     table_name: str,
