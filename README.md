@@ -36,7 +36,7 @@ This pattern provides:
 - 🔍 **Data Validation** - Comprehensive quality checks at every stage
 
 ### Code Quality
-- 🎯 **Type Safety** - Full type annotations with mypy strict mode
+- 🎯 **Type Safety** - Full type annotations with ty type checker
 - ⚡ **Fast Linting** - Ruff for lightning-fast code quality checks
 - 🔒 **Pre-commit Hooks** - Automated quality gates before every commit
 - ✅ **High Test Coverage** - Comprehensive pytest suite with branch coverage
@@ -94,7 +94,7 @@ just check
 
 This runs:
 - Ruff linting and formatting (with auto-fix)
-- mypy type checking
+- ty type checking
 - pytest test suite with coverage
 
 ### 3. Development Workflow
@@ -131,7 +131,7 @@ uv run --env-file .env -- pytest -v
 #### Maintenance
 
 ```bash
-just clean          # Remove generated files (.pytest_cache, .mypy_cache, etc.)
+just clean          # Remove generated files (.pytest_cache, .ty_cache, etc.)
 just pre-commit     # Run pre-commit hooks manually
 just update-hooks   # Update pre-commit hook versions
 ```
@@ -182,8 +182,8 @@ case-study-telemetry/
   - 100 character line length
   - PEP 8 compliance with modern Python idioms
 
-- **[mypy](https://mypy.readthedocs.io/)** (≥1.13.0) - Static type checker
-  - Strict mode enabled
+- **[ty](https://github.com/astral-sh/ty)** (≥0.0.14) - Static type checker from Astral
+  - Fast type checking
   - All functions must be typed
   - Catches type errors before runtime
 
@@ -241,7 +241,7 @@ The WAP pattern implementation includes:
 - [Bauplan Documentation](https://docs.bauplanlabs.com/)
 - [uv Documentation](https://docs.astral.sh/uv/)
 - [Ruff Documentation](https://docs.astral.sh/ruff/)
-- [mypy Documentation](https://mypy.readthedocs.io/)
+- [ty Documentation](https://github.com/astral-sh/ty)
 - [pytest Documentation](https://docs.pytest.org/)
 
 ### Related Concepts

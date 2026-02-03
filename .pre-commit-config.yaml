@@ -11,16 +11,21 @@ repos:
       - id: check-merge-conflict
       - id: detect-private-key
 
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.8.4
+  - repo: local
     hooks:
       - id: ruff
-        args: [--fix, --exit-non-zero-on-fix]
+        name: ruff
+        entry: uv run --env-file .env -- ruff check --fix --exit-non-zero-on-fix
+        language: system
+        types: [python]
       - id: ruff-format
-
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.13.0
-    hooks:
-      - id: mypy
-        additional_dependencies: []
-        args: [--ignore-missing-imports]
+        name: ruff-format
+        entry: uv run --env-file .env -- ruff format
+        language: system
+        types: [python]
+      - id: ty
+        name: ty
+        entry: uv run --env-file .env -- ty check
+        language: system
+        types: [python]
+        pass_filenames: false

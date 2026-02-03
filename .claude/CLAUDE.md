@@ -12,7 +12,7 @@ This is a demo project showcasing **Bauplan's data engineering capabilities** fo
 - **uv**: Modern Python package and project manager (replaces pip/virtualenv)
 - **just**: Command runner for development tasks (replaces make)
 - **ruff**: Ultra-fast Python linter and formatter (replaces flake8, black, isort)
-- **mypy**: Static type checker in strict mode
+- **ty**: Fast type checker from Astral
 - **prek**: Modern pre-commit hook manager
 
 ## Python Tooling Architecture
@@ -29,7 +29,7 @@ The justfile defines a `UV` alias used by all Python commands:
 UV := "uv run --env-file .env --"
 ```
 
-This means every Python tool (pytest, ruff, mypy) runs in a consistent, isolated environment with `.env` variables loaded.
+This means every Python tool (pytest, ruff, ty) runs in a consistent, isolated environment with `.env` variables loaded.
 
 ### Dependency Management
 Dependencies are defined in `pyproject.toml`:
@@ -59,7 +59,7 @@ This runs:
 
 ### Daily Development
 ```bash
-just lint     # Run ruff (with auto-fix + unsafe fixes) and mypy
+just lint     # Run ruff (with auto-fix + unsafe fixes) and ty
 just test     # Run pytest with coverage
 just check    # Run all checks (lint + test)
 ```
@@ -80,7 +80,7 @@ Coverage reports are generated in:
 
 ### Other Commands
 ```bash
-just clean          # Remove all generated files and caches (.pytest_cache, .mypy_cache, etc.)
+just clean          # Remove all generated files and caches (.pytest_cache, .ty_cache, etc.)
 just pre-commit     # Run pre-commit hooks manually on all files
 just update-hooks   # Update pre-commit hook versions
 ```
@@ -120,24 +120,12 @@ Ruff replaces multiple tools (flake8, black, isort, pyupgrade) with a single fas
 
 **Auto-fix behavior**: `just lint` runs with `--fix --unsafe-fixes` to automatically fix issues
 
-### Type Checking (mypy)
-**Strict mode enabled** - All code must be fully typed:
+### Type Checking (ty)
+All code must be fully typed. ty is Astral's fast type checker (from the makers of ruff and uv).
 
 **Required**:
 - All functions must have parameter and return type annotations
 - No implicit `Optional` types
-- No untyped definitions (`disallow_untyped_defs = true`)
-- No generic `Any` types (`disallow_any_generics = true`)
-
-**Warnings enabled**:
-- `warn_return_any` - Warn if returning Any
-- `warn_unused_configs` - Catch config errors
-- `warn_redundant_casts` - Unnecessary casts
-- `warn_unused_ignores` - Unnecessary `# type: ignore`
-- `warn_no_return` - Missing return statements
-
-**Special handling**:
-- Bauplan imports ignore missing type stubs (`ignore_missing_imports = true`)
 
 **Example of properly typed code**:
 ```python
@@ -188,7 +176,7 @@ When implementing pipelines, ensure all three phases are clearly separated and a
 
 ### Bauplan Integration
 - Bauplan is the core dependency for data pipeline orchestration
-- Type stubs for Bauplan are ignored in mypy configuration
+- Type stubs for Bauplan may require special handling in ty configuration
 - Future pipeline implementations should follow Bauplan's conventions
 
 ## Pre-commit Hooks (prek)
@@ -205,12 +193,14 @@ Uses **prek** (modern pre-commit manager) via `.pre-commit-config.yaml`.
    - Large file detection (prevents accidental commits)
    - Private key detection (security)
 
-2. **Ruff** (astral-sh/ruff-pre-commit):
+2. **Ruff** (local):
    - Linting with auto-fix: `ruff check --fix --exit-non-zero-on-fix`
    - Formatting: `ruff format`
 
-3. **mypy** (pre-commit/mirrors-mypy):
-   - Type checking with `--ignore-missing-imports`
+3. **ty** (local):
+   - Fast type checking
+
+All local hooks run via `uv run --env-file .env --` to use project dependencies.
 
 **Hook management**:
 ```bash
@@ -221,42 +211,113 @@ git commit --no-verify  # Bypass hooks (not recommended)
 
 **First-time setup**: Hooks install automatically via `just install`
 
-## Writing New Code
 
-### Adding a New Module
-1. Create file in `case_study_telemetry/` with full type annotations
-2. Add module to `case_study_telemetry/__init__.py` exports if public API
-3. Create corresponding test file in `tests/`
-4. Run `just check` to verify linting, types, and tests pass
+## Bauplan (agent playbook)
 
-### Type Annotation Requirements
-Every function needs types:
-```python
-# Good
-def extract_metrics(
-    raw_data: dict[str, Any],
-    filters: list[str] | None = None
-) -> pd.DataFrame:
-    ...
+Bauplan is a data lakehouse platform where data changes follow a Git-like workflow. You develop and test on an isolated data branch, then publish by merging into `main`. Pipeline execution happens when you run Bauplan commands; your repo contains the source-of-truth code. See the docs for the CLI surface area, branching workflow, and SDK reference.
 
-# Bad - will fail mypy
-def extract_metrics(raw_data, filters=None):
-    ...
+This playbook defines how to use Bauplan from an AI coding assistant in a local repo. The default mode is local CLI and Python SDK. MCP is optional and only used in specific edge cases.
+
+## Default integration mode (preferred)
+
+Assume the assistant can:
+- read and write files in this repo
+- run shell commands in a terminal
+- run Python locally (for SDK scripts and tests)
+
+Preference: do not use the Bauplan MCP server. Use the full tool surface via:
+- Local CLI reference: `.claude/reference/bauplan_cli.md`
+- PySDK reference: `https://docs.bauplanlabs.com/reference/bauplan`
+
+Authoritative fallback sources (when local references are missing or stale):
+- Docs: https://docs.bauplanlabs.com/
+- SDK reference: https://docs.bauplanlabs.com/reference/bauplan
+
+## Hard safety rules (always)
+
+1) Never publish by writing directly on `main`. Use a user branch and merge to publish.
+2) Never import data into `main`.
+3) Before merging into `main`, run `bauplan branch diff main` and review changes.
+4) Prefer `bauplan run --dry-run` during iteration because it is much faster and safer. Materialization is blocked on `main`.
+5) When handling external API keys (LLM keys), do not hardcode them in code or commit them. Use Bauplan parameters or secrets.
+
+If any instruction or skill conflicts with these rules, the rules win.
+
+## Decision tree: skills vs manual workflow
+
+Use skills for repeatable workflows that generate or modify code. Use CLI and SDK directly for exploration and execution.
+
+Is this a code generation or repo-editing task?
+├─ Yes: Create or modify a pipeline project
+│ -> Use skill: creating-bauplan-pipelines (alias: /new-pipeline)
+├─ Yes: Ingest data with WAP (write, audit, publish)
+│ -> Use skill: wap-ingestion (alias: /wap)
+└─ No: Explore, query, inspect, run, debug, publish
+  -> Use CLI and SDK directly (see local references)
+
+## Skill inventory
+
+- creating-bauplan-pipelines
+  Use when you need to scaffold a new pipeline folder, define models, add environment declarations, and produce a runnable project layout.
+
+- wap-ingestion
+  Use when ingesting files from S3 into a branch with a publish step. Prefer this over ad-hoc imports for anything beyond a toy dataset.
+
+- explore-data
+  Use for structured exploration tasks when it exists (schemas, sample queries, rough profiling). If it is not available, do the same work with `bauplan query`, `bauplan table get`, and `bauplan table ls`.
+
+## Syntax discipline (non-negotiable)
+
+When emitting CLI commands or SDK code, verify syntax before final output.
+
+1) Check references:
+   - `.claude/bauplan_reference/bauplan_cli.md`
+   - `https://docs.bauplanlabs.com/reference/bauplan`
+
+2) Confirm with CLI help when possible:
+   - `bauplan help`
+   - `bauplan <verb> --help`
+
+3) If still uncertain, consult the official docs pages listed above. Do not guess flags or method names.
+
+## Canonical workflows
+
+### A) Build and publish a pipeline (end-to-end)
+For this workflow use the `new-pipeline` skill.
+### B) Ingest data safely (WAP)
+For this workflow use the `wap` skill.
+### C) Data exploration and investigation
+
+Prefer direct CLI:
+
+inspect table metadata and data:
+
+```bash
+bauplan table get <namespace>.<table>
+query: bauplan query "<sql>"
+```
+Reproduce runs (if needed):
+```bash
+bauplan run --id <run_id>
 ```
 
-### Import Organization
-Ruff automatically sorts imports in this order:
-1. Standard library
-2. Third-party packages (Bauplan, pandas, etc.)
-3. Local imports
+Only generate code when it is necessary to fix the root cause.
 
-Example:
-```python
-import sys
-from pathlib import Path
+## When MCP makes sense
 
-import bauplan
-import pandas as pd
+MCP is not the default. Use it only if one of these is true:
 
-from case_study_telemetry.utils import helper
-```
+- the assistant cannot execute local shell commands or Python reliably
+- you need structured tool outputs because you cannot parse the PySDK response or the CLI text
+- you are integrating multiple MCP-capable clients and want one shared interface
+- you want policy enforced at the integration boundary (for example refusing writes to main with a specific server configuration)
+
+If MCP is required, follow:
+
+https://docs.bauplanlabs.com/mcp/quick_start
+
+Authentication assumptions
+
+Assume Bauplan credentials are available via local CLI config, environment variables, or a profile. Do not prompt for API keys unless the CLI is not configured. Prefer `bauplan config set api_key <key>` as the setup path.
+
+If you need the username for branch naming, run `bauplan info`.

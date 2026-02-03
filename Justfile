@@ -12,11 +12,11 @@ install:
     {{UV}} uv sync --all-groups
     {{UV}} prek install
 
-# Run linters (ruff and mypy)
+# Run linters (ruff and ty)
 lint:
     {{UV}} ruff check --fix --unsafe-fixes .
     {{UV}} ruff format .
-    {{UV}} mypy .
+    {{UV}} ty check .
 
 
 # Run tests with coverage
@@ -38,7 +38,7 @@ pre-commit:
 # Clean up generated files
 clean:
     rm -rf .pytest_cache
-    rm -rf .mypy_cache
+    rm -rf .ty_cache
     rm -rf .ruff_cache
     rm -rf htmlcov
     rm -rf .coverage

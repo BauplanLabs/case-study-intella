@@ -4,17 +4,8 @@ version = "0.1.0"
 description = "Demo project showcasing Bauplan's data engineering capabilities for ETL pipelines using the WAP pattern - Intella telemetry case study"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = [
-    "bauplan>=0.0.3a509",
-]
+dependencies = ["bauplan>=0.0.3a509"]
 
-[project.optional-dependencies]
-dev = [
-    "ruff>=0.8.0",
-    "mypy>=1.13.0",
-    "pytest>=8.3.0",
-    "pytest-cov>=6.0.0",
-]
 
 [tool.uv]
 package = true
@@ -26,6 +17,10 @@ build-backend = "hatchling.build"
 [dependency-groups]
 dev = [
     "prek>=0.3.1",
+    "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
+    "ruff>=0.14.14",
+    "ty>=0.0.14",
 ]
 
 [tool.ruff]
@@ -54,24 +49,6 @@ ignore = []
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
-
-[tool.mypy]
-python_version = "3.12"
-strict = true
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = true
-disallow_any_generics = true
-check_untyped_defs = true
-no_implicit_optional = true
-warn_redundant_casts = true
-warn_unused_ignores = true
-warn_no_return = true
-follow_imports = "normal"
-
-[[tool.mypy.overrides]]
-module = "bauplan.*"
-ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
