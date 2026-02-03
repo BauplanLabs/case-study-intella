@@ -1,0 +1,60 @@
+services:
+  postgres:
+    image: postgres:17.5-alpine
+    container_name: prefect-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-prefect}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-prefect_password}
+      POSTGRES_DB: ${POSTGRES_DB:-prefect}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-prefect} -d ${POSTGRES_DB:-prefect}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  prefect-server:
+    image: prefecthq/prefect:3-python3.12
+    container_name: prefect-server
+    command: prefect server start --host 0.0.0.0
+    environment:
+      PREFECT_API_DATABASE_CONNECTION_URL: postgresql+asyncpg://${POSTGRES_USER:-prefect}:${POSTGRES_PASSWORD:-prefect_password}@postgres:5432/${POSTGRES_DB:-prefect}
+      PREFECT_SERVER_API_HOST: 0.0.0.0
+      PREFECT_SERVER_API_PORT: 4200
+    ports:
+      - "4200:4200"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4200/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  prefect-worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: prefect-worker
+    environment:
+      PREFECT_API_URL: http://prefect-server:4200/api
+      BAUPLAN_API_KEY: ${BAUPLAN_API_KEY}
+    volumes:
+      - .:/app:ro
+      - worker_data:/root/.prefect
+    working_dir: /app
+    depends_on:
+      prefect-server:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  worker_data:

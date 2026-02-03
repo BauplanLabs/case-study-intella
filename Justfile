@@ -54,3 +54,41 @@ update-hooks:
 
 # Run all checks (lint + test)
 check: lint test
+
+# ==================== Docker & Prefect ====================
+
+# Build the worker image
+build:
+    docker compose build
+
+# Start all services (PostgreSQL, Prefect Server, Prefect Worker)
+launch:
+    docker compose up -d
+
+# Start services and rebuild if needed
+launch-build:
+    docker compose up -d --build
+
+# Stop all services
+stop:
+    docker compose down
+
+# View service logs
+logs:
+    docker compose logs -f
+
+# View specific service logs (e.g., just logs-service prefect-server)
+logs-service service:
+    docker compose logs -f {{service}}
+
+# Create the process work pool (run once after first launch)
+create-pool:
+    {{UV}} prefect work-pool create process-pool --type process
+
+# Deploy the WAP flow to Prefect
+deploy-flow:
+    {{UV}} python scripts/deploy_flow.py
+
+# Run the WAP flow directly (without Prefect server)
+run-flow:
+    {{UV}} python -m case_study_telemetry.flows.wap_telemetry_flow
