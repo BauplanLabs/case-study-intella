@@ -6,4 +6,10 @@ using the Write-Audit-Publish (WAP) pattern for telemetry data processing.
 
 __version__ = "0.1.0"
 
-__all__ = ["__version__"]
+__all__ = [
+    "__version__",
+    "config",
+    "flows",
+    "quality",
+    "tasks",
+]
