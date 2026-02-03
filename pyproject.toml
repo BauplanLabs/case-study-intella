@@ -4,7 +4,13 @@ version = "0.1.0"
 description = "Demo project showcasing Bauplan's data engineering capabilities for ETL pipelines using the WAP pattern - Intella telemetry case study"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = ["bauplan>=0.0.3a509"]
+dependencies = [
+    "bauplan>=0.0.3a509",
+    "duckdb>=1.4.4",
+    "polars>=1.37.1",
+    "prefect>=3.0.0",
+    "pydantic-settings>=2.0.0",
+]
 
 
 [tool.uv]
@@ -16,6 +22,7 @@ build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
+    "ipykernel>=7.1.0",
     "prek>=0.3.1",
     "pytest>=9.0.2",
     "pytest-cov>=7.0.0",
