@@ -27,6 +27,7 @@ import bauplan
 @bauplan.model(
     columns=["time", "dateTime", "signal", "value", "value_original"],
     materialization_strategy="REPLACE",
+    partition_by=["day(dateTime)"],
 )
 @bauplan.python("3.12", pip={"duckdb": "1.1.3"})
 def signal(
