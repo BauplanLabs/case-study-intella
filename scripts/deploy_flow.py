@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 """Deploy the WAP telemetry flow to Prefect."""
 
+from datetime import timedelta
+
+from prefect.schedules import Schedule
+
 from case_study_telemetry.flows.wap_telemetry_flow import wap_telemetry_pipeline
 
 
@@ -11,9 +15,10 @@ def main() -> None:
         name="wap-telemetry-deployment",
         tags=["wap", "telemetry", "etl"],
         parameters={
-            "on_success": "inspect",  # Default to inspect mode for safety
-            "on_failure": "keep",  # Keep branches for debugging by default
+            "on_success": "merge",  # Default to merge mode for deployment
+            "on_failure": "delete",  # Delete branches for cleanup by default
         },
+        schedule=Schedule(interval=timedelta(minutes=5)),
     )
 
 
