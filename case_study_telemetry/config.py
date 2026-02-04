@@ -33,8 +33,8 @@ class WAPConfig(BaseSettings):
     prefect_api_url: str = "http://localhost:4200/api"
 
     # WAP Behavior
-    wap_on_success: Literal["inspect", "merge"] = "inspect"
-    wap_on_failure: Literal["keep", "delete"] = "keep"
+    wap_on_success: Literal["inspect", "merge"] = "merge"
+    wap_on_failure: Literal["keep", "delete"] = "delete"
 
     # Transformation Parameters
     transform_min_date: str = "1980-01-01"

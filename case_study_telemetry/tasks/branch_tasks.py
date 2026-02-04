@@ -4,8 +4,6 @@ import bauplan
 from prefect import task
 from prefect.logging import get_run_logger
 
-from case_study_telemetry.config import get_config
-
 
 @task(name="create-staging-branch", retries=0, retry_delay_seconds=5)
 def create_staging_branch(branch_suffix: str = "wap-staging") -> str:
@@ -21,14 +19,22 @@ def create_staging_branch(branch_suffix: str = "wap-staging") -> str:
         The name of the created branch.
     """
     logger = get_run_logger()
-    config = get_config()
+    client = bauplan.Client()
+
+    # Get username from Bauplan
+    user = client.info().user
+    if not user:
+        raise ValueError("Could not retrieve user from Bauplan client.")
+
+    username = user.username
+
+    if not username:
+        raise ValueError("Bauplan user does not have a valid username.")
 
     # Fixed branch name: username.suffix
-    branch_name = f"{config.bauplan_username}.{branch_suffix}"
+    branch_name = f"{username}.{branch_suffix}"
 
     logger.info(f"Setting up staging branch: {branch_name}")
-
-    client = bauplan.Client(api_key=config.bauplan_api_key)
 
     # Check if branch already exists and delete it
     if client.has_branch(branch=branch_name):
@@ -53,11 +59,10 @@ def delete_branch(branch_name: str) -> bool:
         True if deletion was successful.
     """
     logger = get_run_logger()
-    config = get_config()
 
     logger.info(f"Deleting branch: {branch_name}")
 
-    client = bauplan.Client(api_key=config.bauplan_api_key)
+    client = bauplan.Client()
 
     # Only delete if it exists
     if client.has_branch(branch=branch_name):

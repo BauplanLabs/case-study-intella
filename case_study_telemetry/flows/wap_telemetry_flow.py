@@ -3,7 +3,6 @@
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
-from dotenv import load_dotenv
 from prefect import flow
 from prefect.logging import get_run_logger
 
@@ -38,7 +37,7 @@ class WAPResult:
     warnings: list[str] = field(default_factory=list)
 
 
-@flow(name="wap-telemetry-pipeline", log_prints=True)
+@flow(name="wap-telemetry-pipeline", flow_run_name="wap_telemetry", log_prints=True)
 def wap_telemetry_pipeline(
     s3_source_bucket: str | None = None,
     s3_source_path: str | None = None,
@@ -105,7 +104,6 @@ def wap_telemetry_pipeline(
         logger.info(f"Created staging branch: {branch}")
 
         # Step 1.2: Ingest raw data from S3 (Bronze schema)
-        # create_table handles both table creation and data import
         ingestion_stats = ingest_from_s3(
             s3_uri=s3_uri,
             namespace=ns,
@@ -231,6 +229,5 @@ def wap_telemetry_pipeline(
 
 if __name__ == "__main__":
     # Allow running directly for testing
-    load_dotenv()
     result = wap_telemetry_pipeline()
     print(f"Pipeline result: {result}")

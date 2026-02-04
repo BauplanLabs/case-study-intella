@@ -6,8 +6,6 @@ import bauplan
 from prefect import task
 from prefect.logging import get_run_logger
 
-from case_study_telemetry.config import get_config
-
 
 @task(name="ingest-from-s3", retries=0, retry_delay_seconds=30)
 def ingest_from_s3(
@@ -33,13 +31,13 @@ def ingest_from_s3(
         Dictionary with ingestion statistics.
     """
     logger = get_run_logger()
-    config = get_config()
+
     full_table_name = f"{namespace}.{table_name}"
     source_path = f"{s3_uri.rstrip('/')}/{file_pattern}"
 
     logger.info(f"Ingesting from {source_path} into {full_table_name} on branch {branch}")
 
-    client = bauplan.Client(api_key=config.bauplan_api_key)
+    client = bauplan.Client()
 
     # Create table from S3 (this both creates the table and imports the data)
     # Using replace=True to handle the case where the table already exists
