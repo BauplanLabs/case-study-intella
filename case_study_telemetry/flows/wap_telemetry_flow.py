@@ -19,7 +19,7 @@ from case_study_telemetry.tasks.audit_tasks import (
 )
 from case_study_telemetry.tasks.branch_tasks import create_staging_branch, delete_branch
 from case_study_telemetry.tasks.ingestion_tasks import ingest_from_s3
-from case_study_telemetry.tasks.publish_tasks import diff_branch, merge_to_main
+from case_study_telemetry.tasks.publish_tasks import merge_to_main
 from case_study_telemetry.tasks.transformation_tasks import run_transformations
 
 
@@ -33,7 +33,6 @@ class WAPResult:
     ingestion_stats: dict[str, Any] | None = None
     transformation_stats: dict[str, Any] | None = None
     audit_summary: dict[str, Any] | None = None
-    diff_info: dict[str, Any] | None = None
     merge_result: dict[str, Any] | None = None
     error: str | None = None
     warnings: list[str] = field(default_factory=list)
@@ -123,7 +122,6 @@ def wap_telemetry_pipeline(
             source_table=bronze_table,
             target_table=silver_table,
             branch=branch,
-            min_date=config.transform_min_date,
         )
         result.transformation_stats = transformation_stats
         logger.info(f"Transformed {transformation_stats.get('rows_transformed', 'unknown')} rows")
@@ -186,11 +184,8 @@ def wap_telemetry_pipeline(
         logger.info("PHASE 3: PUBLISH")
         logger.info("-" * 40)
 
-        # Always show diff before any action
-        diff_info = diff_branch(branch)
-        result.diff_info = diff_info
-
         if success_action == "merge":
+            # Merge to main after successful audits
             logger.info("Merging to main (on_success=merge)")
             merge_result = merge_to_main(branch)
             result.merge_result = merge_result
@@ -201,10 +196,10 @@ def wap_telemetry_pipeline(
             logger.info(f"Cleaning up branch {branch}")
             delete_branch(branch)
         else:
-            # inspect mode - show diff but don't merge
+            # Inspect mode - keep branch for manual review
             logger.info("Inspect mode (on_success=inspect)")
             logger.info(f"Branch {branch} ready for manual review")
-            logger.info("Run the following to merge manually:")
+            logger.info("Run the following commands to review and merge:")
             logger.info(f"  bauplan branch diff {branch} main")
             logger.info(f"  bauplan merge {branch} main")
             result.success = True

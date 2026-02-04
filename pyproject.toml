@@ -50,8 +50,9 @@ select = [
 ignore = []
 
 [tool.ruff.lint.per-file-ignores]
-"__init__.py" = ["F401"]   # Allow unused imports in __init__.py
-"tests/**/*.py" = ["S101"] # Allow assert statements in tests
+"__init__.py" = ["F401"]              # Allow unused imports in __init__.py
+"tests/**/*.py" = ["S101"]            # Allow assert statements in tests
+"pipelines/**/models.py" = ["B008"]   # Allow bauplan.Model() in function defaults
 
 [tool.ruff.format]
 quote-style = "double"

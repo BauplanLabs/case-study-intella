@@ -11,7 +11,7 @@ from case_study_telemetry.tasks.audit_tasks import (
 )
 from case_study_telemetry.tasks.branch_tasks import create_staging_branch, delete_branch
 from case_study_telemetry.tasks.ingestion_tasks import ingest_from_s3
-from case_study_telemetry.tasks.publish_tasks import diff_branch, merge_to_main
+from case_study_telemetry.tasks.publish_tasks import merge_to_main
 from case_study_telemetry.tasks.transformation_tasks import run_transformations
 
 __all__ = [
@@ -24,7 +24,6 @@ __all__ = [
     "check_row_count",
     "create_staging_branch",
     "delete_branch",
-    "diff_branch",
     "ingest_from_s3",
     "merge_to_main",
     "run_transformations",

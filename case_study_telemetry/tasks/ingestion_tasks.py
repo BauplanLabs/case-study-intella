@@ -50,6 +50,15 @@ def ingest_from_s3(
         replace=True,
     )
 
+    logger.info(f"Table {full_table_name} created successfully.")
+
+    client.import_data(
+        table=full_table_name,
+        search_uri=source_path,
+        branch=branch,
+    )
+    logger.info(f"Data imported into {full_table_name} successfully.")
+
     stats: dict[str, Any] = {
         "table": full_table_name,
         "branch": branch,
