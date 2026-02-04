@@ -52,6 +52,7 @@ class SilverClientTelemetry:
     """This class handles the SilverClientTelemetry DataFrame."""
 
     time_col = "time"
+    date_time_col = "dateTime"
     signal_col = "signal"
     value_col = "value"
     value_original_col = "value_original"
@@ -63,6 +64,7 @@ class SilverClientTelemetry:
         return pl.Schema(
             {
                 cls.time_col: pl.Int64,
+                cls.date_time_col: pl.Datetime("ms"),
                 cls.signal_col: pl.String,
                 cls.value_col: pl.Float32,
                 cls.value_original_col: pl.Float32,
@@ -80,6 +82,9 @@ class SilverClientTelemetry:
 
         data = {
             cls.time_col: [random.randint(1000000000, 9999999999) for _ in range(n_rows)],
+            cls.date_time_col: [
+                datetime.now() + timedelta(minutes=random.randint(0, 1000)) for _ in range(n_rows)
+            ],
             cls.signal_col: [f"signal_{random.randint(1, 10)}" for _ in range(n_rows)],
             cls.value_col: [random.uniform(0, 100) for _ in range(n_rows)],
             cls.value_original_col: [random.uniform(0, 100) for _ in range(n_rows)],

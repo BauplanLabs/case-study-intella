@@ -10,10 +10,18 @@ This Bauplan pipeline transforms raw telemetry data from Bronze schema to Silver
 
 ## Transformations
 
+The pipeline transforms all data from bronze to silver:
+
 1. **Column Mapping**: Rename `sensors` -> `signal`
 2. **Type Casting**: Parse `value` from string to double
-3. **Null Removal**: Remove rows with null time, signal, or value
-4. **Deduplication**: Keep unique (signal, time) pairs, selecting highest value
+3. **Null Removal**: Remove rows with null time, signal, value, or dateTime
+4. **Deduplication**: Keep unique (time, signal) pairs, selecting highest value
+
+### Materialization Strategy
+
+Uses **REPLACE** strategy - the entire silver table is overwritten on each run.
+
+> **Note**: This processes all data from bronze on every run. Partition-based incremental updates will be implemented in a future version for better performance.
 
 ## Input Schema (Bronze)
 
@@ -26,12 +34,15 @@ This Bauplan pipeline transforms raw telemetry data from Bronze schema to Silver
 
 ## Output Schema (Silver)
 
-| Column         | Type    | Description                    |
-| -------------- | ------- | ------------------------------ |
-| time           | Int64   | Unix timestamp                 |
-| signal         | String  | Signal identifier (ex-sensors) |
-| value          | Float   | Parsed numeric value           |
-| value_original | Float   | Copy of parsed value           |
+| Column         | Type      | Description                    |
+| -------------- | --------- | ------------------------------ |
+| time           | Int64     | Unix timestamp                 |
+| dateTime       | Timestamp | Original datetime (for partitioning) |
+| signal         | String    | Signal identifier (ex-sensors) |
+| value          | Float     | Parsed numeric value           |
+| value_original | Float     | Copy of parsed value           |
+
+**Partitioning**: Table is partitioned by `day(dateTime)` using Iceberg's partition transform. No separate date column is created.
 
 ## Parameters
 
