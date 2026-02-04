@@ -36,13 +36,10 @@ Uses **REPLACE** strategy - the entire silver table is overwritten on each run.
 
 | Column         | Type      | Description                    |
 | -------------- | --------- | ------------------------------ |
-| time           | Int64     | Unix timestamp                 |
-| dateTime       | Timestamp | Original datetime (for partitioning) |
+| dateTime       | Timestamp | Event timestamp                |
 | signal         | String    | Signal identifier (ex-sensors) |
 | value          | Float     | Parsed numeric value           |
 | value_original | Float     | Copy of parsed value           |
-
-**Partitioning**: Table is partitioned by `day(dateTime)` using Iceberg's partition transform. No separate date column is created.
 
 ## Parameters
 

@@ -55,15 +55,15 @@ def check_no_null_time(
     """
     logger = get_run_logger()
     full_table = f"{namespace}.{table_name}"
-    check_name = "no_null_time"
-    time_col = SilverClientTelemetry.time_col
+    check_name = "no_null_dateTime"
+    date_time_col = SilverClientTelemetry.date_time_col
 
     logger.info(f"Running {check_name} check on {full_table}")
 
     sql = f"""
     SELECT COUNT(*) AS null_count
     FROM {full_table}
-    WHERE {time_col} IS NULL
+    WHERE {date_time_col} IS NULL
     """
 
     client = bauplan.Client()
@@ -73,15 +73,15 @@ def check_no_null_time(
     passed = null_count == 0
 
     msg = (
-        f"Found {null_count} rows with null {time_col}"
+        f"Found {null_count} rows with null {date_time_col}"
         if not passed
-        else f"All {time_col} values are non-null"
+        else f"All {date_time_col} values are non-null"
     )
     audit_result = AuditResult(
         check_name=check_name,
         passed=passed,
         message=msg,
-        details={"null_count": null_count, "table": full_table, "column": time_col},
+        details={"null_count": null_count, "table": full_table, "column": date_time_col},
     )
 
     logger.info(f"{check_name}: {'PASSED' if passed else 'FAILED'} - {audit_result.message}")

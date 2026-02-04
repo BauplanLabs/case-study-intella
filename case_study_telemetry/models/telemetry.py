@@ -51,7 +51,6 @@ class BronzeClientTelemetry:
 class SilverClientTelemetry:
     """This class handles the SilverClientTelemetry DataFrame."""
 
-    time_col = "time"
     date_time_col = "dateTime"
     signal_col = "signal"
     value_col = "value"
@@ -63,7 +62,6 @@ class SilverClientTelemetry:
 
         return pl.Schema(
             {
-                cls.time_col: pl.Int64,
                 cls.date_time_col: pl.Datetime("ms"),
                 cls.signal_col: pl.String,
                 cls.value_col: pl.Float32,
@@ -74,14 +72,13 @@ class SilverClientTelemetry:
     @classmethod
     def key_columns(cls) -> list[str]:
         """Returns the keys of the DataFrame."""
-        return [cls.time_col, cls.signal_col]
+        return [cls.date_time_col, cls.signal_col]
 
     @classmethod
     def generate_sample_data(cls, n_rows: int = 5) -> pl.DataFrame:
         """Generates a random DataFrame with the specified schema."""
 
         data = {
-            cls.time_col: [random.randint(1000000000, 9999999999) for _ in range(n_rows)],
             cls.date_time_col: [
                 datetime.now() + timedelta(minutes=random.randint(0, 1000)) for _ in range(n_rows)
             ],

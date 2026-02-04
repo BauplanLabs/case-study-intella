@@ -25,14 +25,14 @@ import bauplan
 
 
 @bauplan.model(
-    columns=["time", "dateTime", "signal", "value", "value_original"],
+    columns=["dateTime", "signal", "value", "value_original"],
     materialization_strategy="REPLACE",
 )
 @bauplan.python("3.12", pip={"duckdb": "1.1.3"})
 def signal(
     bronze_data=bauplan.Model(
         name="telemetry.signal_bronze",
-        columns=["time", "dateTime", "sensors", "value"],
+        columns=["dateTime", "sensors", "value"],
     ),
 ):
     """Transform Bronze telemetry data to Silver schema.
@@ -41,28 +41,27 @@ def signal(
     - Column mapping: sensors -> signal
     - Type casting: value (string) -> value (float)
     - Null removal
-    - Deduplication by (signal, time), keeping highest value
+    - Deduplication by (signal, dateTime), keeping highest value
 
     The REPLACE strategy overwrites the entire table on each run.
 
     Output Schema:
-    | time       | dateTime            | signal    | value | value_original |
-    | ---------- | ------------------- | --------- | ----- | -------------- |
-    | 1234567890 | 2009-02-13 23:31:30 | sensor_1  | 42.5  | 42.5           |
-    | 1234567891 | 2009-02-13 23:31:31 | sensor_2  | 38.2  | 38.2           |
+    | dateTime            | signal    | value | value_original |
+    | ------------------- | --------- | ----- | -------------- |
+    | 2009-02-13 23:31:30 | sensor_1  | 42.5  | 42.5           |
+    | 2009-02-13 23:31:31 | sensor_2  | 38.2  | 38.2           |
     """
     import duckdb
 
     con = duckdb.connect()
     con.register("bronze_raw", bronze_data)
 
-    # Transform with deduplication (keep dateTime for partitioning)
+    # Transform with deduplication
     result = con.execute(
         """
         WITH parsed AS (
             -- Step 1: Parse and filter raw data
             SELECT
-                time AS time,
                 dateTime AS dateTime,
                 sensors AS signal,
                 TRY_CAST(value AS DOUBLE) AS value,
@@ -71,33 +70,31 @@ def signal(
         ),
         filtered AS (
             -- Step 2: Remove nulls and invalid values
-            SELECT time, dateTime, signal, value, value_original
+            SELECT dateTime, signal, value, value_original
             FROM parsed
             WHERE value IS NOT NULL
-              AND time IS NOT NULL
               AND dateTime IS NOT NULL
               AND signal IS NOT NULL
         ),
         ranked AS (
-            -- Step 3: Deduplicate by signal+time, keeping highest value
+            -- Step 3: Deduplicate by signal+dateTime, keeping highest value
             SELECT
                 *,
                 ROW_NUMBER() OVER (
-                    PARTITION BY signal, time
+                    PARTITION BY signal, dateTime
                     ORDER BY value DESC
                 ) AS rn
             FROM filtered
         )
         -- Step 4: Final selection with deduplication
         SELECT
-            time,
             dateTime,
             signal,
             value,
             value_original
         FROM ranked
         WHERE rn = 1
-            and dateTime >= CURRENT_DATE
+            AND dateTime >= CURRENT_DATE
         """,
     ).arrow()
 

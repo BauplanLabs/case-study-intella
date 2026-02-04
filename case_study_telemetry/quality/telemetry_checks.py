@@ -1,7 +1,7 @@
 """SQL-based quality check definitions for telemetry data.
 
 These SQL templates can be used directly or through the audit tasks.
-Uses the Silver schema (time, signal, value, value_original).
+Uses the Silver schema (dateTime, signal, value, value_original).
 """
 
 from dataclasses import dataclass, field
@@ -9,10 +9,10 @@ from dataclasses import dataclass, field
 from case_study_telemetry.models import SilverClientTelemetry
 
 # SQL Templates for quality checks using Silver schema column names
-NO_NULL_TIME_SQL = f"""
+NO_NULL_DATETIME_SQL = f"""
 SELECT COUNT(*) AS violation_count
 FROM {{table}}
-WHERE {SilverClientTelemetry.time_col} IS NULL
+WHERE {SilverClientTelemetry.date_time_col} IS NULL
 """
 
 NO_NULL_VALUE_SQL = f"""
@@ -67,9 +67,11 @@ class TelemetryQualityChecks:
         if not self.checks:
             self.checks = [
                 QualityCheck(
-                    name="no_null_time",
-                    description=f"All rows must have a non-null {SilverClientTelemetry.time_col}",
-                    sql_template=NO_NULL_TIME_SQL,
+                    name="no_null_dateTime",
+                    description=(
+                        f"All rows must have a non-null {SilverClientTelemetry.date_time_col}"
+                    ),
+                    sql_template=NO_NULL_DATETIME_SQL,
                 ),
                 QualityCheck(
                     name="no_null_value",
