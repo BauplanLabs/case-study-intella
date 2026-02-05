@@ -196,7 +196,6 @@ The pipeline uses the following config values (from `.env`):
 ```env
 BAUPLAN_NAMESPACE=telemetry          # Namespace for tables
 BAUPLAN_TARGET_TABLE=signals         # Silver table name (bronze = signals_bronze)
-TRANSFORM_MIN_DATE=1980-01-01        # Default date filter
 ```
 
 ## Troubleshooting

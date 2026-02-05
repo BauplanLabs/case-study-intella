@@ -46,7 +46,6 @@ services:
     container_name: prefect-worker
     environment:
       PREFECT_API_URL: http://prefect-server:4200/api
-      BAUPLAN_API_KEY: ${BAUPLAN_API_KEY}
     volumes:
       - .:/app:ro
       - worker_data:/root/.prefect
