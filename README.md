@@ -136,6 +136,97 @@ just pre-commit     # Run pre-commit hooks manually
 just update-hooks   # Update pre-commit hook versions
 ```
 
+### 4. Running the WAP Pipeline
+
+The telemetry data pipeline can be run in multiple ways depending on your workflow needs.
+
+#### Option 1: Using Prefect (Orchestrated Workflow)
+
+Run the pipeline with full orchestration, monitoring, and scheduling capabilities:
+
+```bash
+# 1. Start all services (PostgreSQL, Prefect Server, Prefect Worker)
+just launch
+
+# 2. Deploy the WAP flow to Prefect
+just deploy-flow
+
+# 3. Open the Prefect dashboard to monitor and trigger runs
+open http://localhost:4200
+```
+
+The Prefect dashboard (http://localhost:4200) provides:
+- **Flow runs monitoring** - Track execution status and logs
+- **Manual triggers** - Run the pipeline on-demand
+- **Scheduling** - Set up automated runs
+- **Execution history** - Review past runs and debug failures
+
+To view logs:
+```bash
+just logs              # View all service logs
+just logs-service prefect-worker  # View only worker logs
+```
+
+To stop services:
+```bash
+just stop              # Stop all Docker Compose services
+```
+
+#### Option 2: Local Python Execution
+
+Run the pipeline directly without Prefect orchestration (useful for quick testing):
+
+```bash
+# Using just command
+just run-flow
+
+# Or directly with uv
+uv run --env-file .env -- python -m case_study_telemetry.flows.wap_telemetry_flow
+```
+
+This runs the complete WAP pipeline:
+1. **Write** - Creates staging branch, ingests data, runs transformations
+2. **Audit** - Executes data quality checks
+3. **Publish** - Merges to main (if configured) or shows diff
+
+#### Option 3: VSCode Debugging
+
+Debug the pipeline with breakpoints and step-through execution:
+
+1. Open VSCode in the project directory
+2. Press `F5` or go to Run → Start Debugging
+3. Select **"Python: WAP Telemetry Flow"** from the debug configuration dropdown
+4. Set breakpoints in the code as needed
+5. The debugger will stop at breakpoints, allowing you to:
+   - Inspect variables
+   - Step through execution
+   - Evaluate expressions
+   - Review call stacks
+
+The debug configuration automatically:
+- Loads environment variables from `.env`
+- Sets `VERBOSITY=DEBUG` for detailed logging
+- Configures proper `PYTHONPATH`
+
+#### Configuration
+
+Before running the pipeline, ensure your `.env` file is configured:
+
+```bash
+# Copy the example environment file
+cp .env.example .env
+
+# Edit with your settings
+nano .env  # or use your preferred editor
+```
+
+Key configuration variables:
+- `S3_SOURCE_BUCKET` - Source S3 bucket for telemetry data
+- `S3_SOURCE_PATH` - Path within the bucket
+- `BAUPLAN_NAMESPACE` - Target namespace for tables
+- `WAP_ON_SUCCESS` - Behavior after successful audit (`inspect` or `merge`)
+- `WAP_ON_FAILURE` - Behavior after failed audit (`keep` or `delete`)
+
 ## Project Structure
 
 ```
