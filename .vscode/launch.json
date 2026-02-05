@@ -18,5 +18,19 @@
                 "ENV_FILE": "./.env"
             }
         },
+        {
+            "name": "Python: WAP Telemetry Flow",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "case_study_telemetry.flows.wap_telemetry_flow",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "justMyCode": false,
+            "env": {
+                "PYTHONPATH": "${cwd}",
+                "VERBOSITY": "DEBUG",
+                "ENV_FILE": "./.env"
+            }
+        }
     ]
 }
