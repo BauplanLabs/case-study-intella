@@ -25,6 +25,7 @@ import bauplan
 
 
 @bauplan.model(
+    name="telemetry.signal",
     columns=["dateTime", "signal", "value", "value_original"],
     materialization_strategy="REPLACE",
 )
