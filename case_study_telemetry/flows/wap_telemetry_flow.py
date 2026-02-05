@@ -17,7 +17,7 @@ from case_study_telemetry.tasks.audit_tasks import (
     check_row_count,
 )
 from case_study_telemetry.tasks.branch_tasks import create_staging_branch, delete_branch
-from case_study_telemetry.tasks.ingestion_tasks import ingest_from_s3
+from case_study_telemetry.tasks.ingestion_tasks import ingest_from_s3, simulate_new_data
 from case_study_telemetry.tasks.publish_tasks import merge_to_main
 from case_study_telemetry.tasks.transformation_tasks import run_transformations
 
@@ -29,6 +29,7 @@ class WAPResult:
     success: bool
     branch: str
     phase: str  # "write", "audit", "publish"
+    simulation_stats: dict[str, Any] | None = None
     ingestion_stats: dict[str, Any] | None = None
     transformation_stats: dict[str, Any] | None = None
     audit_summary: dict[str, Any] | None = None
@@ -90,7 +91,7 @@ def wap_telemetry_pipeline(
     logger.info("=" * 60)
 
     branch: str = ""
-    result = WAPResult(success=False, branch="", phase="write")
+    result = WAPResult(success=False, branch="", phase="write", simulation_stats=None)
 
     try:
         # ==================== PHASE 1: WRITE ====================
@@ -102,6 +103,12 @@ def wap_telemetry_pipeline(
         branch = create_staging_branch()
         result.branch = branch
         logger.info(f"Created staging branch: {branch}")
+
+        logger.info("Simulating new data arrived in s3 bucket...")
+
+        simulation_stats = simulate_new_data(s3_uri=s3_uri)
+        result.simulation_stats = simulation_stats
+        logger.info(f"Simulated data arrival: {simulation_stats}")
 
         # Step 1.2: Ingest raw data from S3 (Bronze schema)
         ingestion_stats = ingest_from_s3(

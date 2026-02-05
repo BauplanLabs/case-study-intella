@@ -29,6 +29,11 @@ class WAPConfig(BaseSettings):
     s3_source_path: str = "telemetry/raw/"
     s3_source_pattern: str = "*.parquet"
 
+    # AWS Credentials for S3 Access
+    aws_access_key_id: str = ""
+    aws_secret_access_key: str = ""
+    aws_region: str = "us-east-1"
+
     # Prefect Configuration
     prefect_api_url: str = "http://localhost:4200/api"
 
@@ -48,6 +53,15 @@ class WAPConfig(BaseSettings):
     def full_table_name(self) -> str:
         """Construct the fully qualified table name."""
         return f"{self.bauplan_namespace}.{self.bauplan_target_table}"
+
+    @property
+    def s3_storage_options(self) -> dict[str, str]:
+        """Return S3 storage options for Polars read/write operations."""
+        return {
+            "aws_access_key_id": self.aws_access_key_id,
+            "aws_secret_access_key": self.aws_secret_access_key,
+            "aws_region": self.aws_region,
+        }
 
 
 @lru_cache

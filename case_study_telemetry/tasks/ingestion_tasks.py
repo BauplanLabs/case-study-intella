@@ -6,6 +6,45 @@ import bauplan
 from prefect import task
 from prefect.logging import get_run_logger
 
+from case_study_telemetry.config import get_config
+from case_study_telemetry.models import BronzeClientTelemetry
+
+
+@task(name="simulate-new-data", retries=0, retry_delay_seconds=30)
+def simulate_new_data(
+    s3_uri: str,
+) -> dict[str, Any]:
+    """Simulate new data arrival in the S3 bucket.
+
+    This is a placeholder function that simulates the arrival of new data
+    in the specified S3 URI. In a real-world scenario, this could involve
+    copying files, generating data, or triggering an external process.
+
+    Args:
+        s3_uri: The S3 URI where new data is to be simulated.
+    Returns:
+        Dictionary with simulation statistics.
+    """
+    logger = get_run_logger()
+    logger.info(f"Simulating new data arrival at {s3_uri}")
+    config = get_config()
+
+    # Placeholder logic for simulation
+    # In a real implementation, this could copy files or generate data
+    simulated_rows = 1000  # Example: number of rows "simulated"
+
+    BronzeClientTelemetry.generate_sample_data(n_rows=simulated_rows).write_parquet(
+        f"{s3_uri.rstrip('/')}/bronze_telemetry.parquet", storage_options=config.s3_storage_options
+    )
+
+    stats: dict[str, Any] = {
+        "s3_uri": s3_uri,
+        "rows_simulated": simulated_rows,
+    }
+
+    logger.info(f"Simulation complete: {stats}")
+    return stats
+
 
 @task(name="ingest-from-s3", retries=0, retry_delay_seconds=30)
 def ingest_from_s3(
