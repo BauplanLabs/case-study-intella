@@ -27,6 +27,7 @@ import bauplan
 @bauplan.model(
     name="telemetry.signal",
     columns=["dateTime", "signal", "value", "value_original"],
+    partitioned_by=["day(dateTime)"],
     materialization_strategy="REPLACE",
 )
 @bauplan.python("3.12", pip={"duckdb": "1.1.3"})
@@ -63,7 +64,7 @@ def signal(
         WITH parsed AS (
             -- Step 1: Parse and filter raw data
             SELECT
-                dateTime AS dateTime,
+                dateTime AT TIME ZONE 'UTC' AS dateTime,
                 sensors AS signal,
                 TRY_CAST(value AS DOUBLE) AS value,
                 TRY_CAST(value AS DOUBLE) AS value_original
