@@ -412,6 +412,7 @@ nano .env  # or use your preferred editor
 **WAP Behavior**:
 - `WAP_ON_SUCCESS` - Behavior after successful audit: `inspect` (show diff only) or `merge` (merge to main)
 - `WAP_ON_FAILURE` - Behavior after failed audit: `keep` (keep branch for debugging) or `delete` (cleanup)
+- `SIMULATE_INGESTION` - Whether to generate sample data in S3 before ingestion: `true` (generate) or `false` (skip, default). Set to `true` only for demo/testing when no real data exists in S3.
 
 **Prefect** (for orchestrated runs):
 - `PREFECT_API_URL` - Prefect server URL (default: `http://localhost:4200/api`)

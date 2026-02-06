@@ -104,13 +104,16 @@ def wap_telemetry_pipeline(
         result.branch = branch
         logger.info(f"Created staging branch: {branch}")
 
-        logger.info("Simulating new data arrived in s3 bucket...")
+        # Step 1.2: Optionally simulate new data arrival (controlled by SIMULATE_INGESTION)
+        if config.simulate_ingestion:
+            logger.info("Simulating new data arrived in s3 bucket...")
+            simulation_stats = simulate_new_data(s3_uri=s3_uri)
+            result.simulation_stats = simulation_stats
+            logger.info(f"Simulated data arrival: {simulation_stats}")
+        else:
+            logger.info("Skipping ingestion simulation (SIMULATE_INGESTION=false)")
 
-        simulation_stats = simulate_new_data(s3_uri=s3_uri)
-        result.simulation_stats = simulation_stats
-        logger.info(f"Simulated data arrival: {simulation_stats}")
-
-        # Step 1.2: Ingest raw data from S3 (Bronze schema)
+        # Step 1.3: Ingest raw data from S3 (Bronze schema)
         ingestion_stats = ingest_from_s3(
             s3_uri=s3_uri,
             namespace=ns,

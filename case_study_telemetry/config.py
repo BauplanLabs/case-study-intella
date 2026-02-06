@@ -40,6 +40,7 @@ class WAPConfig(BaseSettings):
     # WAP Behavior
     wap_on_success: Literal["inspect", "merge"] = "merge"
     wap_on_failure: Literal["keep", "delete"] = "delete"
+    simulate_ingestion: bool = False
 
     # Transformation Parameters
     transform_min_date: str = "1980-01-01"
