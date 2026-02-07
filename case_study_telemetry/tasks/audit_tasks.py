@@ -1,5 +1,6 @@
 """Data quality audit tasks for the WAP pattern."""
 
+import os
 from dataclasses import dataclass
 from typing import Any
 
@@ -66,7 +67,10 @@ def check_no_null_time(
     WHERE {date_time_col} IS NULL
     """
 
-    client = bauplan.Client()
+    api_key = os.getenv("BAUPLAN_API_KEY")
+    if not api_key:
+        raise ValueError("BAUPLAN_API_KEY environment variable is not set")
+    client = bauplan.Client(api_key=api_key)
     result = client.query(query=sql, ref=branch)
 
     null_count = _get_scalar_from_table(result, "null_count")
@@ -117,7 +121,10 @@ def check_no_null_value(
     WHERE {value_col} IS NULL
     """
 
-    client = bauplan.Client()
+    api_key = os.getenv("BAUPLAN_API_KEY")
+    if not api_key:
+        raise ValueError("BAUPLAN_API_KEY environment variable is not set")
+    client = bauplan.Client(api_key=api_key)
     result = client.query(query=sql, ref=branch)
 
     null_count = _get_scalar_from_table(result, "null_count")
@@ -168,7 +175,10 @@ def check_no_null_signal(
     WHERE {signal_col} IS NULL
     """
 
-    client = bauplan.Client()
+    api_key = os.getenv("BAUPLAN_API_KEY")
+    if not api_key:
+        raise ValueError("BAUPLAN_API_KEY environment variable is not set")
+    client = bauplan.Client(api_key=api_key)
     result = client.query(query=sql, ref=branch)
 
     null_count = _get_scalar_from_table(result, "null_count")
@@ -224,7 +234,10 @@ def check_no_duplicates(
     ) duplicates
     """
 
-    client = bauplan.Client()
+    api_key = os.getenv("BAUPLAN_API_KEY")
+    if not api_key:
+        raise ValueError("BAUPLAN_API_KEY environment variable is not set")
+    client = bauplan.Client(api_key=api_key)
     result = client.query(query=sql, ref=branch)
 
     duplicate_count = _get_scalar_from_table(result, "duplicate_count")
@@ -275,7 +288,10 @@ def check_row_count(
     FROM {full_table}
     """
 
-    client = bauplan.Client()
+    api_key = os.getenv("BAUPLAN_API_KEY")
+    if not api_key:
+        raise ValueError("BAUPLAN_API_KEY environment variable is not set")
+    client = bauplan.Client(api_key=api_key)
     result = client.query(query=sql, ref=branch)
 
     row_count = _get_scalar_from_table(result, "row_count")

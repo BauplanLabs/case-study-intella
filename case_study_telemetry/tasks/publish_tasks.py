@@ -1,5 +1,6 @@
 """Publish tasks for the WAP pattern - merging to main."""
 
+import os
 from typing import Any
 
 import bauplan
@@ -22,7 +23,10 @@ def merge_to_main(branch: str) -> dict[str, Any]:
     logger = get_run_logger()
     logger.info(f"Merging branch {branch} into main")
 
-    client = bauplan.Client()
+    api_key = os.getenv("BAUPLAN_API_KEY")
+    if not api_key:
+        raise ValueError("BAUPLAN_API_KEY environment variable is not set")
+    client = bauplan.Client(api_key=api_key)
 
     # Perform the merge using the correct parameter names
     merge_result = client.merge_branch(source_ref=branch, into_branch="main")
