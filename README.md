@@ -246,8 +246,8 @@ Before you begin, ensure you have the following installed:
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/case-study-telemetry.git
-cd case-study-telemetry
+git clone https://github.com/your-org/case-study-intella.git
+cd case-study-intella
 
 # Install dependencies and set up development environment
 just install
