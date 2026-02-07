@@ -1,5 +1,7 @@
 """Bauplan branch management tasks for the WAP pattern."""
 
+import os
+
 import bauplan
 from prefect import task
 from prefect.logging import get_run_logger
@@ -19,7 +21,12 @@ def create_staging_branch(branch_suffix: str = "wap-staging") -> str:
         The name of the created branch.
     """
     logger = get_run_logger()
-    client = bauplan.Client()
+
+    # Initialize Bauplan client with API key from environment
+    api_key = os.getenv("BAUPLAN_API_KEY")
+    if not api_key:
+        raise ValueError("BAUPLAN_API_KEY environment variable is not set")
+    client = bauplan.Client(api_key=api_key)
 
     # Get username from Bauplan
     user = client.info().user
@@ -62,7 +69,11 @@ def delete_branch(branch_name: str) -> bool:
 
     logger.info(f"Deleting branch: {branch_name}")
 
-    client = bauplan.Client()
+    # Initialize Bauplan client with API key from environment
+    api_key = os.getenv("BAUPLAN_API_KEY")
+    if not api_key:
+        raise ValueError("BAUPLAN_API_KEY environment variable is not set")
+    client = bauplan.Client(api_key=api_key)
 
     # Only delete if it exists
     if client.has_branch(branch=branch_name):

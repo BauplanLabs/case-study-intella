@@ -1,5 +1,6 @@
 """Data ingestion tasks for the WAP pattern."""
 
+import os
 from typing import Any
 
 import bauplan
@@ -76,7 +77,12 @@ def ingest_from_s3(
 
     logger.info(f"Ingesting from {source_path} into {full_table_name} on branch {branch}")
 
-    client = bauplan.Client()
+    api_key = os.getenv("BAUPLAN_API_KEY")
+    if not api_key:
+        raise ValueError("BAUPLAN_API_KEY environment variable is not set")
+    client = bauplan.Client(api_key=api_key)
+
+    logger.info(f"Creating table {full_table_name}...")
 
     # Create table from S3 (this both creates the table and imports the data)
     # Using replace=True to handle the case where the table already exists

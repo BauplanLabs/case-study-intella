@@ -1,5 +1,6 @@
 """Data transformation tasks for the WAP pattern."""
 
+import os
 from pathlib import Path
 from typing import Any
 
@@ -51,7 +52,10 @@ def run_transformations(
     logger.info(f"Pipeline directory: {pipeline_dir}")
 
     # Run the Bauplan pipeline
-    client = bauplan.Client()
+    api_key = os.getenv("BAUPLAN_API_KEY")
+    if not api_key:
+        raise ValueError("BAUPLAN_API_KEY environment variable is not set")
+    client = bauplan.Client(api_key=api_key)
 
     try:
         logger.info(f"Executing pipeline on branch {branch}")
