@@ -21,7 +21,7 @@ class WAPConfig(BaseSettings):
     # Bauplan Configuration
     bauplan_api_key: str = ""
     bauplan_namespace: str = "telemetry"
-    bauplan_target_table: str = "signals"
+    bauplan_target_table: str = "signal"
     bauplan_username: str = "your-username"
 
     # S3 Source Configuration
